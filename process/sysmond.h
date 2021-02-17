@@ -5,7 +5,8 @@
 
 #define NETLINK_SYSMON  (MAX_LINKS - 1)
 
-#define RECORD_FILE "/var/log/sysmon/record.log"
+#define RECORD_PATH "/var/log/sysmon"
+#define RECORD_FILE "record.log"
 
 #define LIST_HEAD_INIT(name) { &(name), &(name) }
 

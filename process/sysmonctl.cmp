@@ -1,0 +1,65 @@
+function _sysmonctl()
+{ 
+        local cur prev args ops type syscall unit
+
+	syscall=()
+        COMPREPLY=()
+	args=()
+        ops="add delete modify find"
+	type="pid tgid comm"
+        cur="${COMP_WORDS[COMP_CWORD]}"
+        prev="${COMP_WORDS[COMP_CWORD-1]}"
+	
+        if [ $COMP_CWORD == 1 ];then
+                args=$ops
+        elif [ $COMP_CWORD == 2 ];then
+		echo $ops | grep -w ${COMP_WORDS[1]} &> /dev/null
+                [ $? -eq 0 ] || return 0
+		args="syscall"
+	elif [ $COMP_CWORD == 3 ];then
+		echo $ops | grep -w ${COMP_WORDS[1]} &> /dev/null
+		[ $? -eq 0 ] || return 0
+		[ $prev == "syscall" ] || return 0
+		args=$syscall
+	elif [ $COMP_CWORD == 4 ];then
+		echo $ops | grep -w ${COMP_WORDS[1]} &> /dev/null
+		[ $? -eq 0 ] || return 0
+		[ ${COMP_WORDS[2]} == "syscall" ] || return 0
+		echo $syscall | grep -w ${COMP_WORDS[3]} &> /dev/null
+		[ $? -eq 0 ] || return 0
+		args=$type
+		[ ${COMP_WORDS[1]} == "find" ] && args+=" all"
+	elif [ $COMP_CWORD == 6 ];then
+		[ ${COMP_WORDS[1]} == "add" ] || [ ${COMP_WORDS[1]} == "modify" ] || return 0
+                [ ${COMP_WORDS[2]} == "syscall" ] || return 0
+                echo $syscall | grep -w ${COMP_WORDS[3]} &> /dev/null
+                [ $? -eq 0 ] || return 0
+		echo $type | grep -w ${COMP_WORDS[4]} &> /dev/null
+                [ $? -eq 0 ] || return 0
+		args="timeout"
+	elif [ $COMP_CWORD == 7 ];then
+		[ ${COMP_WORDS[1]} == "add" ] || [ ${COMP_WORDS[1]} == "modify" ] || return 0
+                [ ${COMP_WORDS[2]} == "syscall" ] || return 0
+                echo $syscall | grep -w ${COMP_WORDS[3]} &> /dev/null
+                [ $? -eq 0 ] || return 0
+                echo $type | grep -w ${COMP_WORDS[4]} &> /dev/null
+                [ $? -eq 0 ] || return 0
+		[ ${COMP_WORDS[6]} == "timeout" ] || return 0
+		unit=${COMP_WORDS[7]: 0-1}
+		if [ $unit == "m" ];then
+			 args=${COMP_WORDS[7]}s
+		elif [ $unit == "u" ];then
+			 args=${COMP_WORDS[7]}s
+		elif [ $unit == "n" ];then
+			args=${COMP_WORDS[7]}s
+		elif [ $unit == "s" ];then
+                        args=${COMP_WORDS[7]}
+		else
+			args="${COMP_WORDS[7]}s ${COMP_WORDS[7]}ms ${COMP_WORDS[7]}us ${COMP_WORDS[7]}ns"
+		fi
+	fi
+
+	COMPREPLY=($(compgen -W "${args}" -- ${cur}))
+	return 0
+}
+complete -F _sysmonctl sysmonctl

@@ -11,9 +11,7 @@
 
 #define _S(syscallno, name) name,
 static char *syscallarray[] = {
-#ifdef __x86_64
-#include "x86_64_table.h"
-#endif
+#include "syscall_table.h"
 	NULL
 };
 
@@ -258,6 +256,7 @@ int main(int argc, char *argv[])
 	else if (strcmp(argv[1], "version") == 0)
 	{
 		printf("v1.0.0.0\n");
+		printf("author: wang1131695576@outlook.com\n");
 		return 0;
 	}
 	else

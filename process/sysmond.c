@@ -20,9 +20,7 @@
 
 #define _S(syscallno, name) name,
 static char *syscallarray[] = {
-#ifdef __x86_64
-#include "x86_64_table.h"
-#endif
+#include "syscall_table.h"
 	NULL
 };
 
@@ -121,7 +119,7 @@ int sysmon_module_init()
 	return fd;
 }
 
-int create_socket_dir(char *path)
+int create_dir(char *path)
 {
 	char *pos, *cur;
 	char dirname[NAME_MAX];
@@ -176,7 +174,7 @@ int sysmon_server_init()
 	int fd;
 	struct sockaddr_un server;
 
-	if(create_socket_dir(SOCKET_PATH) == -1)
+	if(create_dir(SOCKET_PATH) == -1)
 		return -1;
 
 	unlink(SOCKET_NAME);
@@ -290,6 +288,12 @@ int main()
 	if(epoll_ctl(efd, EPOLL_CTL_ADD, afd, &event) == -1)
 	{       
 		printf("fail: epoll_ctl(%s)\n", strerror(errno));
+		return -1;
+	}
+
+	if(create_dir(RECORD_PATH) == -1)
+	{
+		printf("fail: mkdir %s(%s)\n", RECORD_PATH, strerror(errno));
 		return -1;
 	}
 
