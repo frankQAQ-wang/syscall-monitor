@@ -118,6 +118,27 @@ static const char *syscall_nr_to_meta(int nr)
 	return fsyscalls_metadata[nr]->name;
 }
 
+static char *trans_task_policy(unsigned int policy)
+{
+	switch(policy)
+	{
+		case SCHED_NORMAL:
+			return "SCHED_NORMAL";
+		case SCHED_FIFO:
+			return "SCHED_FIFO";
+		case SCHED_RR:
+			return "SCHED_RR";
+		case SCHED_BATCH:
+			return "SCHED_BATCH";
+		case SCHED_IDLE:
+			return "SCHED_IDLE";
+		case SCHED_DEADLINE:
+			return "SCHED_DEADLINE";
+		default:
+			return "unknown";
+	}
+}
+
 static char *trans_task_state(unsigned int state)
 {       
 	switch(state)
@@ -635,6 +656,13 @@ static enum hrtimer_restart syscall_monitor_timer_fn(struct hrtimer *hrtimer)
 	sprintf(record->tcomm, "%s", pid_task(find_vpid(timer->task->tgid), PIDTYPE_PID)->comm);
 	sprintf(record->comm, "%s", timer->task->comm);
 
+	record->curr_state = current->state;
+	record->curr_pid = current->pid;
+	record->curr_prio = current->prio;
+	record->curr_policy = current->policy;
+	sprintf(record->curr_comm, "%s", current->comm);
+	record->curr_durtime = current->se.sum_exec_runtime - current->se.prev_sum_exec_runtime;
+
 	record->trace.nr_entries        = 0;
 	record->trace.max_entries       = MAX_STACK_SYSMON_DEPTH;
 	record->trace.entries           = entries;
@@ -825,6 +853,12 @@ static int syscall_monitor_record_thread(void *unused)
 				sprintf(send_record->pcomm, "%s", record->pcomm);
 				sprintf(send_record->tcomm, "%s", record->tcomm);
 				sprintf(send_record->comm, "%s", record->comm);
+				send_record->curr_state = record->curr_state;
+				send_record->curr_pid = record->curr_pid;
+				send_record->curr_prio = record->curr_prio;
+				send_record->curr_policy = record->curr_policy;
+				sprintf(send_record->curr_comm, "%s", record->curr_comm);
+				send_record->curr_durtime = record->curr_durtime;
 				memcpy(&send_record->start_time, &record->start_time, sizeof(struct timespec));
 				memcpy(&send_record->catch_time, &record->catch_time, sizeof(struct timespec));
 				entries = record->trace.entries;
@@ -832,6 +866,7 @@ static int syscall_monitor_record_thread(void *unused)
 					sprintf(send_record->stack, "%s[<0>] %pB\n", send_record->stack, (void *)entries[i]);
 				skb = syscall_monitor_skb(0, send_msg, sizeof(struct syscall_monitor_send_msg_struct) + sizeof(struct syscall_monitor_send_record_struct));
 				DEBUG_PRINT(LEVEL_DEBUG, "syscallname = %s, cpu = %d, state = %s, pcomm = %s(%d), tcomm = %s(%d), comm = %s(%d), stime = %lu.%lu, ctime = %lu.%lu\n", syscall_nr_to_meta(send_record->syscallno), send_record->cpu, trans_task_state(send_record->state), send_record->pcomm, send_record->ppid, send_record->tcomm, send_record->tgid, send_record->comm, send_record->pid, send_record->start_time.tv_sec, send_record->start_time.tv_nsec, send_record->catch_time.tv_sec - send_record->start_time.tv_sec, send_record->catch_time.tv_nsec - send_record->start_time.tv_nsec);
+				DEBUG_PRINT(LEVEL_DEBUG, "current: state = %s, comm = %s(%d), prio = %d, policy = %s, durtime = %lu\n", trans_task_state(send_record->curr_state), send_record->curr_comm, send_record->curr_pid, send_record->curr_prio, trans_task_policy(send_record->curr_policy), send_record->curr_durtime);
 				DEBUG_PRINT(LEVEL_DEBUG, "stack");
 				DEBUG_PRINT(LEVEL_DEBUG, "%s\n", send_record->stack);
 				if(skb != NULL)

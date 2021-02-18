@@ -250,7 +250,7 @@ int main(int argc, char *argv[])
 		ret = sysmonctl_find(&rmsg, argc -2, argv + 2);
 	else if (strcmp(argv[1], "help") == 0)
 	{
-		printf("%s add|delete|modify|find syscall [vlaue] pid|tgid|comm|all [vlaue] timeout [value]\n");
+		printf("%s add|delete|modify|find syscall [vlaue] pid|tgid|comm|all [vlaue] timeout [value]\n", argv[0]);
 		return 0;
 	}
 	else if (strcmp(argv[1], "version") == 0)

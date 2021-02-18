@@ -83,6 +83,12 @@ struct sysmon_srecord_struct
 	char pcomm[TASK_COMM_LEN];
 	char tcomm[TASK_COMM_LEN];
 	char comm[TASK_COMM_LEN];
+	int curr_state;
+	pid_t curr_pid;
+	int curr_prio;
+	unsigned int curr_policy;
+	char curr_comm[TASK_COMM_LEN];
+	unsigned long curr_durtime;
 	struct timespec stime;
 	struct timespec ctime;
 	char stack[MAX_STACK_MSG];

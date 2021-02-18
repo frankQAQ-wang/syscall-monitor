@@ -35,6 +35,27 @@ int memlock;
 int hashlock;
 unsigned long req_heart;
 
+static char *trans_task_policy(unsigned int policy)
+{
+	switch(policy)
+	{
+		case SCHED_NORMAL:
+			return "SCHED_NORMAL";
+		case SCHED_FIFO:
+			return "SCHED_FIFO";
+		case SCHED_RR:
+			return "SCHED_RR";
+		case SCHED_BATCH:
+			return "SCHED_BATCH";
+		case SCHED_IDLE:
+			return "SCHED_IDLE";
+		case SCHED_DEADLINE:
+			return "SCHED_DEADLINE";
+		default:
+			return "unknown";
+	}
+}
+
 static char *trans_task_state(unsigned int state)
 {
 	switch(state)
@@ -377,7 +398,7 @@ int main()
 							cur += NLMSG_ALIGN(sizeof(struct sysmon_smsg_struct));
 							break;
 						case OPS_FIND:
-							if(pos - cur < smsg->retnum * sizeof(struct sysmon_sret_struct))
+							if(pos - cur < NLMSG_ALIGN(smsg->retnum * sizeof(struct sysmon_sret_struct)))
 								break;
 							cfd = find_req(nlh->nlmsg_seq);
 							if(cfd != -1)
@@ -392,14 +413,16 @@ int main()
 							cur += NLMSG_ALIGN(sizeof(struct sysmon_smsg_struct) + smsg->retnum * sizeof(struct sysmon_sret_struct));
 							break;
 						case OPS_RECORD:
-							if(pos - cur < NLMSG_SPACE(sizeof(struct sysmon_smsg_struct) + sizeof(struct sysmon_srecord_struct)))
+							if(pos - cur < NLMSG_ALIGN(sizeof(struct sysmon_smsg_struct) + sizeof(struct sysmon_srecord_struct)))
 								break;
 							srecord = (struct sysmon_srecord_struct *)(buff + cur + sizeof(struct sysmon_smsg_struct));
 							ctime_r(&srecord->stime.tv_sec, stime);
 							stime[strlen(stime) > 0 ? strlen(stime) - 1 : 0] = 0;
-							sprintf(recordbuff, "syscall = %s, cpu = %d, state = %s, pcomm = %s(%d), tcomm = %s(%d), comm = %s(%d), stime = %s.%lu, ctime = %lu.%lu\nstack:\n%s\n", syscallarray[srecord->sysno], srecord->cpu, trans_task_state(srecord->state), srecord->pcomm, srecord->ppid, srecord->tcomm, srecord->tgid, srecord->comm, srecord->pid, stime, srecord->stime.tv_nsec, srecord->ctime.tv_sec - srecord->stime.tv_sec, srecord->ctime.tv_nsec - srecord->stime.tv_nsec, srecord->stack);
+							sprintf(recordbuff, "syscall = %s, cpu = %d, state = %s, pcomm = %s(%d), tcomm = %s(%d), comm = %s(%d), stime = %s.%lu, ctime = %lu.%lu\n", syscallarray[srecord->sysno], srecord->cpu, trans_task_state(srecord->state), srecord->pcomm, srecord->ppid, srecord->tcomm, srecord->tgid, srecord->comm, srecord->pid, stime, srecord->stime.tv_nsec, srecord->ctime.tv_sec - srecord->stime.tv_sec, srecord->ctime.tv_nsec - srecord->stime.tv_nsec);
+							sprintf(recordbuff + strlen(recordbuff), "current: state = %s, comm = %s(%d), prio = %d, policy = %s, durtime = %lu\n", trans_task_state(srecord->curr_state), srecord->curr_comm, srecord->curr_pid, srecord->curr_prio, trans_task_policy(srecord->curr_policy), srecord->curr_durtime);
+							sprintf(recordbuff + strlen(recordbuff), "stack:\n%s\n", srecord->stack);
 							write(rfd, recordbuff, strlen(recordbuff));
-							cur += NLMSG_SPACE(sizeof(struct sysmon_smsg_struct) + sizeof(struct sysmon_srecord_struct));
+							cur += NLMSG_ALIGN(sizeof(struct sysmon_smsg_struct) + sizeof(struct sysmon_srecord_struct));
 							break;
 						default:
 							printf("ops = %d\n", smsg->ops);

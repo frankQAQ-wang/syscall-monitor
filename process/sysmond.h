@@ -8,6 +8,13 @@
 #define RECORD_PATH "/var/log/sysmon"
 #define RECORD_FILE "record.log"
 
+#define SCHED_NORMAL            0
+#define SCHED_FIFO              1
+#define SCHED_RR                2
+#define SCHED_BATCH             3
+#define SCHED_IDLE              5
+#define SCHED_DEADLINE          6
+
 #define LIST_HEAD_INIT(name) { &(name), &(name) }
 
 struct list_head {
