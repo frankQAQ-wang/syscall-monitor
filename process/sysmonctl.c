@@ -70,6 +70,21 @@ int parse_arg(struct sysmon_rmsg_struct *rmsg, int argc, char *argv[])
 		rmsg->obj.type = TYPE_COMM;
 		sprintf(rmsg->obj.comm, "%s", argv[3]);
 	}
+	else if(strcmp(argv[2], "tgcomm") == 0)
+	{
+		rmsg->obj.type = TYPE_TGCOMM;
+		sprintf(rmsg->obj.tgcomm, "%s", argv[3]);
+	}
+	else if(strcmp(argv[2], "ppid") == 0)
+	{
+		rmsg->obj.type = TYPE_PPID;
+		rmsg->obj.ppid = atoi(argv[3]);
+	}
+	else if(strcmp(argv[2], "pcomm") == 0)
+	{
+		rmsg->obj.type = TYPE_PCOMM;
+		sprintf(rmsg->obj.pcomm, "%s", argv[3]);
+	}
 	else if(strcmp(argv[2], "all") == 0)
 	{
 		rmsg->obj.type = TYPE_ALL;
@@ -217,6 +232,15 @@ void print_result(struct sysmon_sret_struct *sret, int num)
 			case TYPE_COMM:
 				printf(" comm %s", sret[i].obj.comm);
 				break;
+			case TYPE_TGCOMM:
+				printf(" tgcomm %s", sret[i].obj.tgcomm);
+				break;
+			case TYPE_PPID:
+				printf(" ppid %d", sret[i].obj.ppid);
+				break;
+			case TYPE_PCOMM:
+				printf(" pcomm %s", sret[i].obj.pcomm);
+				break;
 			default:
 				printf("unknown");
 		}
@@ -250,7 +274,7 @@ int main(int argc, char *argv[])
 		ret = sysmonctl_find(&rmsg, argc -2, argv + 2);
 	else if (strcmp(argv[1], "help") == 0)
 	{
-		printf("%s add|delete|modify|find syscall [vlaue] pid|tgid|comm|all [vlaue] timeout [value]\n", argv[0]);
+		printf("%s add|delete|modify|find syscall [vlaue] pid|tgid|comm|tgcomm|ppid|pcomm|all [vlaue] timeout [value]\n", argv[0]);
 		return 0;
 	}
 	else if (strcmp(argv[1], "version") == 0)

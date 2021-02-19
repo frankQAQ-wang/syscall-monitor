@@ -22,6 +22,9 @@ enum syscall_monitor_point_type
 	TYPE_PID = 1,
 	TYPE_TGID,
 	TYPE_COMM,
+	TYPE_TGCOMM,
+	TYPE_PPID,
+	TYPE_PCOMM,
 	TYPE_ALL,
 	TYPE_MAX
 };
@@ -70,6 +73,9 @@ struct syscall_monitor_object_struct
 		unsigned long pid;
 		unsigned long tgid;
 		char comm[TASK_COMM_LEN];
+		char tgcomm[TASK_COMM_LEN];
+		unsigned long ppid;
+		char pcomm[TASK_COMM_LEN];
 	};
 };
 

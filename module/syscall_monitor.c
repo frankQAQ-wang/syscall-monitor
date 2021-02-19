@@ -247,6 +247,18 @@ static struct syscall_monitor_point_struct *syscall_monitor_find_rcu(unsigned in
 					if(strcmp(point->object.comm, object->comm) == 0)
 						goto find;
 					break;
+				case TYPE_TGCOMM:
+					if(strcmp(point->object.tgcomm, object->tgcomm) == 0)
+						goto find;
+					break;
+				case TYPE_PPID:
+					if(point->object.ppid == object->ppid)
+						goto find;
+					break;
+				case TYPE_PCOMM:
+					if(strcmp(point->object.pcomm, object->pcomm) == 0)
+						goto find;
+					break;
 				case TYPE_ALL:
 					return NULL;
 				default:
@@ -310,6 +322,18 @@ static struct sk_buff *syscall_monitor_add(struct nlmsghdr *nlh)
 			sprintf(point->object.comm, "%s", recv_msg->object.comm);
 			DEBUG_PRINT(LEVEL_INFO, "add rule: syscallname = %s, comm = %s, timeout = %luns\n", syscall_nr_to_meta(recv_msg->syscallno), recv_msg->object.comm, recv_msg->timeout);
 			break;
+		case TYPE_TGCOMM:
+			sprintf(point->object.tgcomm, "%s", recv_msg->object.tgcomm);
+			DEBUG_PRINT(LEVEL_INFO, "add rule: syscallname = %s, tgcomm = %s, timeout = %luns\n", syscall_nr_to_meta(recv_msg->syscallno), recv_msg->object.tgcomm, recv_msg->timeout);
+			break;
+		case TYPE_PPID:
+			point->object.ppid = recv_msg->object.ppid;
+			DEBUG_PRINT(LEVEL_INFO, "add rule: syscallname = %s, ppid = %ld, timeout = %luns\n", syscall_nr_to_meta(recv_msg->syscallno), recv_msg->object.ppid, recv_msg->timeout);
+			break;
+		case TYPE_PCOMM:
+			sprintf(point->object.pcomm, "%s", recv_msg->object.pcomm);
+			DEBUG_PRINT(LEVEL_INFO, "add rule: syscallname = %s, pcomm = %s, timeout = %luns\n", syscall_nr_to_meta(recv_msg->syscallno), recv_msg->object.pcomm, recv_msg->timeout);
+			break;
 		case TYPE_ALL:
 			send_msg.errno = RET_INVAILD_TYPE;
 			break;
@@ -360,6 +384,15 @@ static struct sk_buff *syscall_monitor_delete(struct nlmsghdr *nlh)
 			break;
 		case TYPE_COMM:
 			DEBUG_PRINT(LEVEL_INFO, "delete rule: syscallname = %s, comm = %s, timeout = %luns\n", syscall_nr_to_meta(point->syscallno), point->object.comm, point->timeout);
+			break;
+		case TYPE_TGCOMM:
+			DEBUG_PRINT(LEVEL_INFO, "delete rule: syscallname = %s, tgcomm = %s, timeout = %luns\n", syscall_nr_to_meta(point->syscallno), point->object.tgcomm, point->timeout);
+			break;
+		case TYPE_PPID:
+			 DEBUG_PRINT(LEVEL_INFO, "delete rule: syscallname = %s, ppid = %ld, timeout = %luns\n", syscall_nr_to_meta(point->syscallno), point->object.ppid, point->timeout);
+			break;
+		case TYPE_PCOMM:
+			DEBUG_PRINT(LEVEL_INFO, "delete rule: syscallname = %s, pcomm = %s, timeout = %luns\n", syscall_nr_to_meta(point->syscallno), point->object.pcomm, point->timeout);
 			break;
 		default:
 			DEBUG_PRINT(LEVEL_WARNING, "delete rule? what");
@@ -424,6 +457,15 @@ static struct sk_buff *syscall_monitor_modify(struct nlmsghdr *nlh)
 		case TYPE_COMM:
 			sprintf(npoint->object.comm, "%s", recv_msg->object.comm);
 			break;
+		case TYPE_TGCOMM:
+			sprintf(npoint->object.tgcomm, "%s", recv_msg->object.tgcomm);
+			break;
+		case TYPE_PPID:
+			npoint->object.ppid = recv_msg->object.ppid;
+			break;
+		case TYPE_PCOMM:
+			sprintf(npoint->object.pcomm, "%s", recv_msg->object.pcomm);
+			break;
 		case TYPE_ALL:
 			send_msg.errno = RET_INVAILD_TYPE;
 			break;
@@ -446,6 +488,15 @@ static struct sk_buff *syscall_monitor_modify(struct nlmsghdr *nlh)
 			break;
 		case TYPE_COMM:
 			DEBUG_PRINT(LEVEL_INFO, "modify rule: syscallname = %s, comm = %s, oldtimeout = %luns, newtimeout = %luns\n", syscall_nr_to_meta(point->syscallno), point->object.comm, point->timeout, npoint->timeout);
+			break;
+		case TYPE_TGCOMM:
+			DEBUG_PRINT(LEVEL_INFO, "modify rule: syscallname = %s, tgcomm = %s, oldtimeout = %luns, newtimeout = %luns\n", syscall_nr_to_meta(point->syscallno), point->object.tgcomm, point->timeout, npoint->timeout);
+			break;
+		case TYPE_PPID:
+			DEBUG_PRINT(LEVEL_INFO, "modify rule: syscallname = %s, ppid = %ld, oldtimeout = %luns, newtimeout = %luns\n", syscall_nr_to_meta(point->syscallno), point->object.ppid, point->timeout, npoint->timeout);
+			break;
+		case TYPE_PCOMM:
+			DEBUG_PRINT(LEVEL_INFO, "modify rule: syscallname = %s, pcomm = %s, oldtimeout = %luns, newtimeout = %luns\n", syscall_nr_to_meta(point->syscallno), point->object.pcomm, point->timeout, npoint->timeout);
 			break;
 		default:
 			DEBUG_PRINT(LEVEL_WARNING, "modify rule? what");
@@ -513,7 +564,7 @@ static struct sk_buff *syscall_monitor_find(struct nlmsghdr *nlh)
 		send_msg.errno = RET_NOT_FOUND;
 		goto err;
 	}
-	
+
 	nsend_msg = (struct syscall_monitor_send_msg_struct *)vmalloc(sizeof(struct syscall_monitor_send_msg_struct) + sizeof(struct syscall_monitor_send_ret_struct));
 	if(nsend_msg == NULL)
 	{       
@@ -541,6 +592,14 @@ out:
 		case TYPE_COMM:
 			DEBUG_PRINT(LEVEL_INFO, "find rule: syscallname = %s, comm = %s, retnum = %d\n", syscall_nr_to_meta(recv_msg->syscallno), send_ret->object.comm, nsend_msg->retnum);
 			break;
+		case TYPE_TGCOMM:
+			DEBUG_PRINT(LEVEL_INFO, "find rule: syscallname = %s, tgcomm = %s, retnum = %d\n", syscall_nr_to_meta(recv_msg->syscallno), send_ret->object.tgcomm, nsend_msg->retnum);
+			break;
+		case TYPE_PPID:
+			DEBUG_PRINT(LEVEL_INFO, "find rule: syscallname = %s, ppid = %ld, retnum = %d\n", syscall_nr_to_meta(recv_msg->syscallno), send_ret->object.ppid, nsend_msg->retnum);
+			break;
+		case TYPE_PCOMM:
+			DEBUG_PRINT(LEVEL_INFO, "find rule: syscallname = %s, pcomm = %s, retnum = %d\n", syscall_nr_to_meta(recv_msg->syscallno), send_ret->object.pcomm, nsend_msg->retnum);
 		case TYPE_ALL:
 			DEBUG_PRINT(LEVEL_INFO, "find rule: syscallname = %s, all, retnum = %d\n", syscall_nr_to_meta(recv_msg->syscallno), nsend_msg->retnum);
 			break;
@@ -712,6 +771,24 @@ static void syscall_monitor_syscall_enter(void *ignore, struct pt_regs *regs, lo
 	if(point != NULL)
 		goto find;
 
+	object.type = TYPE_TGCOMM;
+	sprintf(object.tgcomm, "%s", pid_task(find_vpid(current->tgid), PIDTYPE_PID)->comm);
+	point = syscall_monitor_find_rcu(syscall_nr, &object);
+	if(point != NULL)
+		goto find;
+
+	object.type = TYPE_PPID;
+	object.pid = current->parent->pid;
+	point = syscall_monitor_find_rcu(syscall_nr, &object);
+	if(point != NULL)
+		goto find;
+
+	object.type = TYPE_PCOMM;
+	sprintf(object.pcomm, "%s", current->parent->comm);
+	point = syscall_monitor_find_rcu(syscall_nr, &object);
+	if(point != NULL)
+		goto find;
+
 	rcu_read_unlock();
 	return;
 find:
@@ -774,6 +851,33 @@ retry_comm:
 
 	notfind ++;
 
+retry_tgcomm:
+	object.type = TYPE_TGCOMM;
+	sprintf(object.tgcomm, "%s", pid_task(find_vpid(current->tgid), PIDTYPE_PID)->comm);
+	point = syscall_monitor_find_rcu(syscall_nr, &object);
+	if(point != NULL)
+		goto find;
+
+	notfind ++;
+
+retry_ppid:
+	object.type = TYPE_PPID;
+	object.tgid = current->parent->pid;
+	point = syscall_monitor_find_rcu(syscall_nr, &object);
+	if(point != NULL)
+		goto find;
+
+	notfind ++;
+
+retry_pcomm:
+	object.type = TYPE_PCOMM;
+	sprintf(object.pcomm, "%s", current->parent->comm);
+	point = syscall_monitor_find_rcu(syscall_nr, &object);
+	if(point != NULL)
+		goto find;
+
+	notfind ++;
+
 	goto out;
 find:
 	spin_lock(&point->timer_lock);
@@ -794,6 +898,13 @@ find:
 		goto retry_tgid;
 	if(notfind == 2)
 		goto retry_comm;
+	if(notfind == 3)
+		goto retry_tgcomm;
+	if(notfind == 4)
+		goto retry_ppid;
+	if(notfind == 5)
+		goto retry_pcomm;
+
 out:
 	rcu_read_unlock();
 }

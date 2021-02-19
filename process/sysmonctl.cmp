@@ -6,7 +6,7 @@ function _sysmonctl()
         COMPREPLY=()
 	args=()
         ops="add delete modify find"
-	type="pid tgid comm"
+	type="pid tgid comm tgcomm ppid pcomm"
         cur="${COMP_WORDS[COMP_CWORD]}"
         prev="${COMP_WORDS[COMP_CWORD-1]}"
 	
