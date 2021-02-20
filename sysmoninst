@@ -1,7 +1,0 @@
-#!/bin/bash
-if [ "$1" == "start" ];then
-	modprobe syscall_monitor
-	/usr/sbin/sysmond &
-elif [ "$1" == "stop" ];then
-	rmmod syscall_monitor
-fi

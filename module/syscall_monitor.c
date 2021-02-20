@@ -708,17 +708,53 @@ static enum hrtimer_restart syscall_monitor_timer_fn(struct hrtimer *hrtimer)
 
 	record->cpu = timer->cpu;
 	record->state = timer->task->state;
-	record->ppid = timer->task->parent->pid;
-	record->tgid = timer->task->tgid;
 	record->pid = timer->task->pid;
-	sprintf(record->pcomm, "%s", timer->task->parent->comm);
-	sprintf(record->tcomm, "%s", pid_task(find_vpid(timer->task->tgid), PIDTYPE_PID)->comm);
 	sprintf(record->comm, "%s", timer->task->comm);
+	if(timer->task->parent != NULL)
+	{
+		record->ppid = timer->task->parent->pid;
+		sprintf(record->pcomm, "%s", timer->task->parent->comm);
+	}
+	else
+	{
+		record->ppid = 0;
+		sprintf(record->pcomm, "NULL");
+	}
+	if(record->tgid != 0)
+	{
+		record->tgid = timer->task->tgid;
+		sprintf(record->tcomm, "%s", pid_task(find_vpid(timer->task->tgid), PIDTYPE_PID)->comm);
+	}
+	else
+	{
+		record->tgid = 0;
+		sprintf(record->tcomm, "NULL");
+	}
 
 	record->curr_state = current->state;
 	record->curr_pid = current->pid;
 	record->curr_prio = current->prio;
 	record->curr_policy = current->policy;
+	if(current->parent != NULL)
+	{
+		record->curr_ppid = current->parent->pid;
+		sprintf(record->curr_pcomm, "%s", current->parent->comm);
+	}
+	else
+	{
+		record->curr_ppid = 0;
+		sprintf(record->curr_pcomm, "NULL");
+	}
+	if(current->tgid != 0)
+	{
+		record->curr_tgid = current->tgid;
+		sprintf(record->curr_tcomm, "%s", pid_task(find_vpid(current->tgid), PIDTYPE_PID)->comm);
+	}
+	else
+	{
+		record->curr_tgid = 0;
+		sprintf(record->curr_tcomm, "NULL");
+	}
 	sprintf(record->curr_comm, "%s", current->comm);
 	record->curr_durtime = current->se.sum_exec_runtime - current->se.prev_sum_exec_runtime;
 
@@ -965,9 +1001,13 @@ static int syscall_monitor_record_thread(void *unused)
 				sprintf(send_record->tcomm, "%s", record->tcomm);
 				sprintf(send_record->comm, "%s", record->comm);
 				send_record->curr_state = record->curr_state;
+				send_record->curr_ppid = record->curr_ppid;
+				send_record->curr_tgid = record->curr_tgid;
 				send_record->curr_pid = record->curr_pid;
 				send_record->curr_prio = record->curr_prio;
 				send_record->curr_policy = record->curr_policy;
+				sprintf(send_record->curr_pcomm, "%s", record->curr_pcomm);
+				sprintf(send_record->curr_tcomm, "%s", record->curr_tcomm);
 				sprintf(send_record->curr_comm, "%s", record->curr_comm);
 				send_record->curr_durtime = record->curr_durtime;
 				memcpy(&send_record->start_time, &record->start_time, sizeof(struct timespec));

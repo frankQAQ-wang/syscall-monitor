@@ -418,8 +418,8 @@ int main()
 							srecord = (struct sysmon_srecord_struct *)(buff + cur + sizeof(struct sysmon_smsg_struct));
 							ctime_r(&srecord->stime.tv_sec, stime);
 							stime[strlen(stime) > 0 ? strlen(stime) - 1 : 0] = 0;
-							sprintf(recordbuff, "syscall = %s, cpu = %d, state = %s, pcomm = %s(%d), tcomm = %s(%d), comm = %s(%d), stime = %s.%lu, ctime = %lu.%lu\n", syscallarray[srecord->sysno], srecord->cpu, trans_task_state(srecord->state), srecord->pcomm, srecord->ppid, srecord->tcomm, srecord->tgid, srecord->comm, srecord->pid, stime, srecord->stime.tv_nsec, srecord->ctime.tv_sec - srecord->stime.tv_sec, srecord->ctime.tv_nsec - srecord->stime.tv_nsec);
-							sprintf(recordbuff + strlen(recordbuff), "current: state = %s, comm = %s(%d), prio = %d, policy = %s, durtime = %lu\n", trans_task_state(srecord->curr_state), srecord->curr_comm, srecord->curr_pid, srecord->curr_prio, trans_task_policy(srecord->curr_policy), srecord->curr_durtime);
+							sprintf(recordbuff, "catch: syscall = %s, cpu = %d, state = %s, pcomm = %s(%d), tcomm = %s(%d), comm = %s(%d), stime = %s.%lu, ctime = %lu.%lus\n", syscallarray[srecord->sysno], srecord->cpu, trans_task_state(srecord->state), srecord->pcomm, srecord->ppid, srecord->tcomm, srecord->tgid, srecord->comm, srecord->pid, stime, srecord->stime.tv_nsec, srecord->ctime.tv_sec - srecord->stime.tv_sec, srecord->ctime.tv_nsec - srecord->stime.tv_nsec);
+							sprintf(recordbuff + strlen(recordbuff), "current: state = %s, pcomm = %s(%d), tcomm = %s(%d), comm = %s(%d), prio = %d, policy = %s, durtime = %lu.%lus\n", trans_task_state(srecord->curr_state), srecord->curr_pcomm, srecord->curr_ppid, srecord->curr_tcomm, srecord->curr_tgid, srecord->curr_comm, srecord->curr_pid, srecord->curr_prio, trans_task_policy(srecord->curr_policy), srecord->curr_durtime/(unsigned long)1000000000, srecord->curr_durtime%(unsigned long)1000000000);
 							sprintf(recordbuff + strlen(recordbuff), "stack:\n%s\n", srecord->stack);
 							write(rfd, recordbuff, strlen(recordbuff));
 							cur += NLMSG_ALIGN(sizeof(struct sysmon_smsg_struct) + sizeof(struct sysmon_srecord_struct));

@@ -90,9 +90,13 @@ struct sysmon_srecord_struct
 	char tcomm[TASK_COMM_LEN];
 	char comm[TASK_COMM_LEN];
 	int curr_state;
+	pid_t curr_tgid;
+	pid_t curr_ppid;
 	pid_t curr_pid;
 	int curr_prio;
 	unsigned int curr_policy;
+	char curr_pcomm[TASK_COMM_LEN];
+	char curr_tcomm[TASK_COMM_LEN];
 	char curr_comm[TASK_COMM_LEN];
 	unsigned long curr_durtime;
 	struct timespec stime;

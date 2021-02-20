@@ -1,13 +1,15 @@
 [Unit]
-Description=syscall monitor damon
+Description=syscall monitor daemon
 After=network.target network-online.target remote-fs.target basic.target
 DefaultDependencies=no
 
 [Service]
-Type=oneshot
-ExecStart=/usr/bin/sysmoninst start
-RemainAfterExit=yes
-StartLimitInterval=0
+Type=simple
+ExecStartPre=/usr/sbin/modprobe syscall_monitor
+ExecStart=/usr/sbin/sysmond
+ExecStop=/usr/bin/kill $MAINPID
+ExecStopPost=/usr/sbin/rmmod syscall_monitor
+KillMode=process
 
 [Install]
 WantedBy=multi-user.target
