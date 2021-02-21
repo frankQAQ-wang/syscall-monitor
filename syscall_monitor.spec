@@ -40,6 +40,7 @@ systemctl enable sysmon
 systemctl start sysmon
 %preun
 systemctl stop sysmon
+systemctl disable sysmon
 %postun
 systemctl daemon-reload
 depmod
