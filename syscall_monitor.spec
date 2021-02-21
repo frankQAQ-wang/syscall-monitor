@@ -46,6 +46,7 @@ systemctl daemon-reload
 depmod
 
 %files
+%dir /usr/lib/modules/*/sysmon/
 %attr(644,root,root) /etc/bash_completion.d/sysmonctl
 %attr(644,root,root) /usr/lib/systemd/system/sysmon.service
 %attr(644,root,root) /usr/lib/modules/*/sysmon/syscall_monitor.ko
