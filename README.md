@@ -4,7 +4,9 @@ make
 install:  
 make install  
 run:  
-systemctl start sysmon  
+systemctl start sysmon 
+rpm:
+make rpm  
 add rule:  
 sysmonctl help  
 ##record:  

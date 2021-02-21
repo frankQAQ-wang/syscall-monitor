@@ -12,13 +12,15 @@ install:
 	systemctl daemon-reload
 	systemctl enable sysmon
 uninstall:
-	rm -r ${DESTDIR}/lib/modules/$(shell uname -r)/sysmon
+	rm -r ${DESTDIR}/usr/lib/modules/$(shell uname -r)/sysmon
 	depmod
 	rm ${DESTDIR}/usr/sbin/sysmond
 	rm ${DESTDIR}/usr/bin/sysmonctl
-	rm ${DESTDIR}/usr/share/bash-completion/completions/sysmonctl
+	rm ${DESTDIR}/etc/bash_completion.d/sysmonctl
 	rm ${DESTDIR}/usr/lib/systemd/system/sysmon.service
 	systemctl daemon-reload
+rpm:
+	rpmbuild -bb syscall_monitor.spec
 clean:
 	make -C module clean
 	make -C process clean
